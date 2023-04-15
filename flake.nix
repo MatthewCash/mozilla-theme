@@ -6,14 +6,14 @@
         flake-utils.url = "github:numtide/flake-utils";
     };
 
-    outputs = { self, nixpkgs, flake-utils, ... }:
+    outputs = { nixpkgs, flake-utils, ... }:
     flake-utils.lib.eachDefaultSystem (system:
         let pkgs = nixpkgs.legacyPackages.${system}; in {
             defaultPackage = pkgs.lib.makeOverridable ({ accentColor }: pkgs.stdenvNoCC.mkDerivation {
                 name = "mozilla-theme";
                 src = ./src;
                 dontConfigure = true;
-                unpackPhase= ''
+                unpackPhase = ''
                     cp $src/manifest.json .
                 '';
                 patchPhase = let
@@ -22,7 +22,7 @@
                     l = builtins.toString accentColor.l;
                     hsl = "hsl(${h},${s}%,${l}%)";
                 in ''
-                    ${pkgs.gnused}/bin/sed -i 's/{{ACCENTCOLOR}}/${hsl}/g' manifest.json
+                    substituteInPlace manifest.json --replace "{{ACCENTCOLOR}}" "${hsl}"
                 '';
                 buildPhase = ''
                     ${pkgs.p7zip}/bin/7z a theme.xpi *
